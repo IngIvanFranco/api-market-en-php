@@ -301,3 +301,64 @@ if(isset($_GET["detalleorden"])){
 
 
 
+
+if(isset($_GET["Validacion"])){
+    require './phpmailer/mail/src/Exception.php';
+ require './phpmailer/mail/src/PHPMailer.php';
+ require './phpmailer/mail/src/SMTP.php';
+ 
+     $data = json_decode(file_get_contents("php://input"));
+     $asunto=$data->asunto;
+     $email=$data->email;
+     $mensaje=$data->mensaje;
+ 
+ 
+     $permitted_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+ 
+     function generate_string($input, $strength = 16) {
+         $input_length = strlen($input);
+         $random_string = '';
+         for($i = 0; $i < $strength; $i++) {
+             $random_character = $input[mt_rand(0, $input_length - 1)];
+             $random_string .= $random_character;
+         }
+      
+         return $random_string;
+     }
+      
+     // Output: iNCHNGzByPjhApvn7XBD
+     $codigovale= generate_string($permitted_chars, 8);
+      
+
+
+ $mail = new PHPMailer(true);
+
+ 
+ try {
+     //Server settings
+     $mail->SMTPDebug = 0 ;                      //Enable verbose debug 
+     $mail->isSMTP();                                //Send using SMTP
+     $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
+     $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
+     $mail->Username   = 'invercomes.analisis@gmail.com';                     //SMTP username
+     $mail->Password   = '1nv3rc0m3s';                               //SMTP password
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption 
+     $mail->Port       = 465;                                    //465TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
+ 
+     //Recipients
+     $mail->setFrom('comercial@invercomes.com.co', 'Marketpkace Invercomes');
+     $mail->addAddress($email, 'Cliente Feliz');     //Add a recipient
+       $mail->isHTML(true);                                  //Set email format to HTML
+     $mail->Subject =  $asunto;
+     $mail->Body    = "Codigo de verificacion <br> $codigovale";
+  
+ 
+     $mail->send();
+
+        echo json_encode(["Codigo"=> $codigovale]); 
+ 
+ } catch (Exception $e) {
+     echo json_encode([" Error:"=>$mail->ErrorInfo]);
+ }
+ 
+ }
