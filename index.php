@@ -13,16 +13,19 @@ header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 $servidor = "localhost"; $usuario = "root"; $contrasenia = ""; $nombreBaseDatos = "invercomesadmin";
 $conexionBD = new mysqli($servidor, $usuario, $contrasenia, $nombreBaseDatos);
 
+mysqli_set_charset($conexionBD,"utf8");
 
 // Actualiza datos pero recepciona datos de nombre, correo y una clave para realizar la actualización
 
 
 if (isset($_GET["consultarcategorias"])){
     $sqlEmpleaados = mysqli_query($conexionBD,"SELECT * FROM categoria");
+
     if(mysqli_num_rows($sqlEmpleaados) > 0){
+    	
         $empleaados = mysqli_fetch_all($sqlEmpleaados,MYSQLI_ASSOC);
-        echo json_encode($empleaados);
-        exit();
+       echo json_encode($empleaados,JSON_INVALID_UTF8_SUBSTITUTE);
+        die();
     }
     else{  echo json_encode(["success"=>0]); }
 }
@@ -36,7 +39,7 @@ if (isset($_GET["productosdescuento"])){
     ORDER BY RAND() LIMIT 30");
     if(mysqli_num_rows($sqlEmpleaados) > 0){
         $empleaados = mysqli_fetch_all($sqlEmpleaados,MYSQLI_ASSOC);
-        echo json_encode($empleaados);
+        echo json_encode($empleaados,JSON_INVALID_UTF8_SUBSTITUTE);
         exit();
     }
     else{  echo json_encode(["success"=>0]); }
@@ -48,7 +51,7 @@ if (isset($_GET["consultarsubcategorias"])){
     $sqlEmpleaados = mysqli_query($conexionBD,"SELECT * FROM sub_categoria_productos");
     if(mysqli_num_rows($sqlEmpleaados) > 0){
         $empleaados = mysqli_fetch_all($sqlEmpleaados,MYSQLI_ASSOC);
-        echo json_encode($empleaados);
+        echo json_encode($empleaados,JSON_INVALID_UTF8_SUBSTITUTE);
         exit();
     }
     else{  echo json_encode(["success"=>0]); }
@@ -62,7 +65,7 @@ if (isset($_GET["consultarproducto"])){
     WHERE id =".$_GET['consultarproducto']);
      if(mysqli_num_rows($sqlEmpleaados) > 0){
         $empleaados = mysqli_fetch_all($sqlEmpleaados,MYSQLI_ASSOC);
-        echo json_encode($empleaados);
+        echo json_encode($empleaados,JSON_INVALID_UTF8_SUBSTITUTE);
         exit();
     }
     else{  echo json_encode(["success"=>0]); }
@@ -75,7 +78,7 @@ if (isset($_GET["consultarproductos"])){
     AND (products.name LIKE '%".$_GET['consultarproductos']."%' OR products.description LIKE '%".$_GET['consultarproductos']."%')");
      if(mysqli_num_rows($sqlEmpleaados) > 0){
         $empleaados = mysqli_fetch_all($sqlEmpleaados,MYSQLI_ASSOC);
-        echo json_encode($empleaados);
+        echo json_encode($empleaados,JSON_INVALID_UTF8_SUBSTITUTE);
         exit();
     }
     else{  echo json_encode(["success"=>0]); }
@@ -89,7 +92,7 @@ if(isset($_GET["login"])){
     $sqllogin = mysqli_query($conexionBD,"SELECT * FROM customers WHERE email= '$usr' AND pass = '$pass'");
     if(mysqli_num_rows($sqllogin) == 1){
         $customer = mysqli_fetch_all($sqllogin,MYSQLI_ASSOC);
-        echo json_encode($customer);
+        echo json_encode($customer,JSON_INVALID_UTF8_SUBSTITUTE);
         
     }else {
         echo json_encode(["success"=>0]);
@@ -105,7 +108,7 @@ if (isset($_GET["consultarcustomers"])){
     WHERE customers.id = ".$_GET['consultarcustomers']."");
      if(mysqli_num_rows($sqlEmpleaados) > 0){
         $empleaados = mysqli_fetch_all($sqlEmpleaados,MYSQLI_ASSOC);
-        echo json_encode($empleaados);
+        echo json_encode($empleaados,JSON_INVALID_UTF8_SUBSTITUTE);
         exit();
     }
     else{  echo json_encode(["success"=>0]); }
@@ -141,7 +144,7 @@ if (isset($_GET["consultarcitys"])){
     $sqlEmpleaados = mysqli_query($conexionBD,"SELECT departamentos.departamento,municipios.municipio FROM departamentos,municipios WHERE municipios.departamento_id=departamentos.id_departamento;");
      if(mysqli_num_rows($sqlEmpleaados) > 0){
         $empleaados = mysqli_fetch_all($sqlEmpleaados,MYSQLI_ASSOC);
-        echo json_encode($empleaados);
+        echo json_encode($empleaados,JSON_INVALID_UTF8_SUBSTITUTE);
         exit();
     }
     else{  echo json_encode(["success"=>0]); }
@@ -154,14 +157,15 @@ if(isset($_GET["usr"])&&isset($_GET["valor"])){
     $ciudad=$data->ciudad;
     $direccion=$data->direccion;
     $metodopago=$data->metodopago;
+    $puntos=$data->puntos;
    
     $DateAndTime = date('Y-m-d h:i:s a', time()); 
     
     if(($ciudad!="")&&($direccion!="")&&($metodopago!="")){
 
     $sqlregister = mysqli_query($conexionBD,"INSERT INTO orders
-    (customer_id,total_price,metodo_pago,created,modified,ciudad,direccion) VALUES 
-    ('".$_GET["usr"]."','".$_GET["valor"]."','$metodopago','$DateAndTime','$DateAndTime','$ciudad','$direccion') "); 
+    (customer_id,total_price,metodo_pago,created,modified,ciudad,direccion,puntos) VALUES 
+    ('".$_GET["usr"]."','".$_GET["valor"]."','$metodopago','$DateAndTime','$DateAndTime','$ciudad','$direccion','$puntos') "); 
         
         $orderID = $conexionBD->insert_id;
 
@@ -212,7 +216,7 @@ if(isset($_GET["listarproductos"])){
     AND id_categoriaproducts = '$_GET[listarproductos]'");
      if(mysqli_num_rows($sqlEmpleaados) > 0){
         $empleaados = mysqli_fetch_all($sqlEmpleaados,MYSQLI_ASSOC);
-        echo json_encode($empleaados);
+        echo json_encode($empleaados,JSON_INVALID_UTF8_SUBSTITUTE);
         
     }
 
@@ -243,7 +247,7 @@ try {
     $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
     $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
     $mail->Username   = 'invercomes.analisis@gmail.com';                     //SMTP username
-    $mail->Password   = '1nv3rc0m3s';                               //SMTP password
+    $mail->Password   = 'nnxrcihvrpqwcrhl';                               //SMTP password
    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption 
     $mail->Port       = 465;                                    //465TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
 
@@ -280,7 +284,7 @@ if(isset($_GET["ordenescustomer"])){
     $sqlEmpleaados = mysqli_query($conexionBD,"SELECT * FROM orders WHERE orders.customer_id = ".$_GET["ordenescustomer"]);
     if(mysqli_num_rows($sqlEmpleaados) > 0){
        $empleaados = mysqli_fetch_all($sqlEmpleaados,MYSQLI_ASSOC);
-       echo json_encode($empleaados);
+       echo json_encode($empleaados,JSON_INVALID_UTF8_SUBSTITUTE);
        exit();
    }
    else{  echo json_encode(["success"=>0]); }
@@ -292,7 +296,7 @@ if(isset($_GET["detalleorden"])){
     AND products.id = order_items.product_id");
     if(mysqli_num_rows($sqlEmpleaados) > 0){
        $empleaados = mysqli_fetch_all($sqlEmpleaados,MYSQLI_ASSOC);
-       echo json_encode($empleaados);
+       echo json_encode($empleaados,JSON_INVALID_UTF8_SUBSTITUTE);
        exit();
    }
    else{  echo json_encode(["success"=>0]); }
@@ -341,11 +345,11 @@ if(isset($_GET["Validacion"])){
      $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
      $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
      $mail->Username   = 'invercomes.analisis@gmail.com';                     //SMTP username
-     $mail->Password   = '1nv3rc0m3s';                               //SMTP password
+     $mail->Password   = 'nnxrcihvrpqwcrhl';                               //SMTP password
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption 
      $mail->Port       = 465;                                    //465TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
  
-     //Recipients
+     //Recipients nnxrcihvrpqwcrhl
      $mail->setFrom('comercial@invercomes.com.co', 'Marketpkace Invercomes');
      $mail->addAddress($email, 'Cliente Feliz');     //Add a recipient
        $mail->isHTML(true);                                  //Set email format to HTML
