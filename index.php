@@ -366,3 +366,21 @@ if(isset($_GET["Validacion"])){
  }
  
  }
+
+ if(isset($_GET["ggpoints"])){
+    $sqlorden = mysqli_query($conexionBD,"SELECT orders.id, customers.identificacion_cliente, customers.name, orders.created, orders.total_price, orders.puntos
+    FROM orders,customers WHERE orders.id = ".$_GET['ggpoints']."
+    AND orders.customer_id = customers.id ");
+    $sqldetalleorden = mysqli_query($conexionBD,"SELECT products.name, order_items.quantity, order_items.precio, order_items.descuento FROM order_items,products WHERE order_items.order_id = ".$_GET['ggpoints']."
+    AND products.id = order_items.product_id");
+    if(mysqli_num_rows($sqlorden) > 0){
+       $orden = mysqli_fetch_all($sqlorden,MYSQLI_ASSOC);
+       $detalleorden = mysqli_fetch_all($sqldetalleorden,MYSQLI_ASSOC);
+       echo json_encode(["SUCCESS"=>1,
+                           "DATOS_ORDEN"=>$orden,
+                            "DETALLE_ORDEN"=>$detalleorden],JSON_INVALID_UTF8_SUBSTITUTE);
+       exit();
+   }
+   else{  echo json_encode(["SUCCESS"=>0]); }
+}
+
