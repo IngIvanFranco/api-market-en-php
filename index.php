@@ -1,7 +1,7 @@
 <?php
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-
+date_default_timezone_set('America/Bogota');
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: access");
@@ -281,7 +281,7 @@ try {
 }
 
 if(isset($_GET["ordenescustomer"])){
-    $sqlEmpleaados = mysqli_query($conexionBD,"SELECT * FROM orders WHERE orders.customer_id = ".$_GET["ordenescustomer"]);
+    $sqlEmpleaados = mysqli_query($conexionBD,"SELECT * FROM orders WHERE orders.status != 4 AND orders.customer_id = ".$_GET["ordenescustomer"]);
     if(mysqli_num_rows($sqlEmpleaados) > 0){
        $empleaados = mysqli_fetch_all($sqlEmpleaados,MYSQLI_ASSOC);
        echo json_encode($empleaados,JSON_INVALID_UTF8_SUBSTITUTE);
@@ -382,5 +382,51 @@ if(isset($_GET["Validacion"])){
        exit();
    }
    else{  echo json_encode(["SUCCESS"=>0]); }
+}
+
+
+
+
+if (isset($_GET["editcustomer"])){
+     
+    $data = json_decode(file_get_contents("php://input"));
+
+    $id=(isset($data->id))?$data->id:$_GET["editcustomer"];
+    $nombre=$data->nombre;
+    $correo=$data->email;
+    $direccion=$data->direccion;
+    $celular=$data->celular;
+    $ciudad=$data->ciudad;
+    $identificacion=$data->identificacion;
+    $postal=$data->postal;
+    $DateAndTime = date('Y-m-d h:i:s a', time()); 
+
+    
+    $sqlEmpleaados = mysqli_query($conexionBD,"UPDATE  customers 
+    SET identificacion_cliente ='$identificacion', name = '$nombre', email='$correo', phone = '$celular', address = '$direccion', city = '$ciudad', codigo_postal = '$postal', modified = '$DateAndTime'
+    WHERE customers.id = $id");
+     if($sqlEmpleaados){
+        
+        echo json_encode(["success"=>1]);
+        exit();
+    }
+    else{  echo json_encode(["success"=>0]); }
+}
+
+
+
+
+if (isset($_GET["revertirorden"])){
+    $DateAndTime = date('Y-m-d h:i:s a', time()); 
+
+    $sqlEmpleaados = mysqli_query($conexionBD,"UPDATE  orders 
+    SET status = '4', modified = '$DateAndTime'
+    WHERE orders.id =".$_GET['revertirorden']."");
+     if($sqlEmpleaados){
+        
+        echo json_encode(["success"=>1]);
+        exit();
+    }
+    else{  echo json_encode(["success"=>0]); }
 }
 
