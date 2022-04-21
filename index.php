@@ -1,4 +1,12 @@
 <?php
+///////////////////////////////////////////////////////////////////
+//WEB SERVICE PARA LA MARKETPLACE DE INVERCOMES SAS////////////////
+//DESARROLLADO EN PHP V7///////////////////////////////////////////
+//INGENIERO IVAN DARIO FRANCO NOVOA////////////////////////////////
+//INGENIERO.IVANFR@GMAIL.COM///////////////////////////////////////
+//3028416742///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 date_default_timezone_set('America/Bogota');
@@ -15,9 +23,10 @@ $conexionBD = new mysqli($servidor, $usuario, $contrasenia, $nombreBaseDatos);
 
 mysqli_set_charset($conexionBD,"utf8");
 
-// Actualiza datos pero recepciona datos de nombre, correo y una clave para realizar la actualización
 
-
+//////////////////////////////////////////////////////////////////////////////
+//Consulta todas las categorias por las cuales estan divididos los productos//
+//////////////////////////////////////////////////////////////////////////////
 if (isset($_GET["consultarcategorias"])){
     $sqlEmpleaados = mysqli_query($conexionBD,"SELECT * FROM categoria");
 
@@ -32,6 +41,9 @@ if (isset($_GET["consultarcategorias"])){
 
 
 
+//////////////////////////////////////////////////////////////////////////////
+//Consulta todos los productos que cuentan con algun descuento////////////////
+//////////////////////////////////////////////////////////////////////////////
 if (isset($_GET["productosdescuento"])){
     $sqlEmpleaados = mysqli_query($conexionBD,"SELECT * FROM products
     WHERE descuento > 0
@@ -47,6 +59,9 @@ if (isset($_GET["productosdescuento"])){
 
 
 
+//////////////////////////////////////////////////////////////////////////////////
+//COnsulta todas las subcategorias por las cuales estan divididos los productos//
+/////////////////////////////////////////////////////////////////////////////////
 if (isset($_GET["consultarsubcategorias"])){
     $sqlEmpleaados = mysqli_query($conexionBD,"SELECT * FROM sub_categoria_productos");
     if(mysqli_num_rows($sqlEmpleaados) > 0){
@@ -59,6 +74,9 @@ if (isset($_GET["consultarsubcategorias"])){
 
 
 
+//////////////////////////////////////////////////////////////////////////////
+//Consulta un producto especifico recibiendo por get el id del producto///////
+//////////////////////////////////////////////////////////////////////////////
 if (isset($_GET["consultarproducto"])){
     
     $sqlEmpleaados = mysqli_query($conexionBD,"SELECT * FROM products 
@@ -72,6 +90,10 @@ if (isset($_GET["consultarproducto"])){
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//COnsulta todos los productos donde su nombre y/o descripcion contengan la palabra de busqueda que se envia por get//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 if (isset($_GET["consultarproductos"])){
     
     $sqlEmpleaados = mysqli_query($conexionBD,"SELECT * FROM products WHERE status = '1'  
@@ -84,6 +106,10 @@ if (isset($_GET["consultarproductos"])){
     else{  echo json_encode(["success"=>0]); }
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////////
+//consulta si el usr que esta intentando iniciar sesion existe y devuelve sus datos//
+////////////////////////////////////////////////////////////////////////////////////
 
 if(isset($_GET["login"])){
     $data = json_decode(file_get_contents("php://input"));
@@ -100,6 +126,9 @@ if(isset($_GET["login"])){
     
 }
 }
+/////////////////////////////////////////////////////////////////////////////////////
+//consulta un usr especifico recibiendo su id por metodo get//
+////////////////////////////////////////////////////////////////////////////////////
 
 
 if (isset($_GET["consultarcustomers"])){
@@ -114,6 +143,9 @@ if (isset($_GET["consultarcustomers"])){
     else{  echo json_encode(["success"=>0]); }
 }
 
+//////////////////////////////////////////////////////////////////////////////////
+//Registra un nuevo cliente recibiendo un archivo json con toda la informacion //
+/////////////////////////////////////////////////////////////////////////////////
 
 
 if(isset($_GET["register"])){
@@ -138,6 +170,9 @@ if(isset($_GET["register"])){
     exit();
 }
 
+////////////////////////////////////////////////////////////////////
+//consulta todos los departamentos con sus respectivos municipios//
+///////////////////////////////////////////////////////////////////
 
 if (isset($_GET["consultarcitys"])){
     
@@ -150,6 +185,9 @@ if (isset($_GET["consultarcitys"])){
     else{  echo json_encode(["success"=>0]); }
 }
 
+/////////////////////////////////////////////////////////////////////////////
+//registra una nueva orden y devuelve su id recibiendo datos por post y get//
+/////////////////////////////////////////////////////////////////////////////
 
 
 if(isset($_GET["usr"])&&isset($_GET["valor"])){
@@ -174,6 +212,9 @@ if(isset($_GET["usr"])&&isset($_GET["valor"])){
     exit();
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+//recibe por get el id de la orden y registra los productos correspondientes a la misma//
+/////////////////////////////////////////////////////////////////////////////////////////
 
 
 if(isset($_GET["orderid"])){
@@ -196,7 +237,9 @@ if(isset($_GET["orderid"])){
 }
 
 
-
+//////////////////////////////////////////////////////////////////////////
+//recibe por get el id de la orden y devuelve su informacion sin detalle//
+//////////////////////////////////////////////////////////////////////////
 
 if(isset($_GET["datosorder"])){
     $sqlEmpleaados = mysqli_query($conexionBD,"SELECT * FROM orders WHERE orders.id = ".$_GET["datosorder"]);
@@ -209,6 +252,9 @@ if(isset($_GET["datosorder"])){
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//recibe el id de la categoria de los productos y devuelve todos los productos relacionados a esa categoria//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 if(isset($_GET["listarproductos"])){
@@ -225,6 +271,9 @@ if(isset($_GET["listarproductos"])){
 
 
 
+//////////////////////////////////////////////////////////////////////
+//recibe por post los datos email asunto y mensaje y envia el correo//
+//////////////////////////////////////////////////////////////////////
 
 
 if(isset($_GET["correo"])){
@@ -280,6 +329,11 @@ try {
 
 }
 
+/////////////////////////////////////////////////////////////////////////////////////
+//recibe el id de un cliente por get y devuelve todas las ordenes relacionadas a el//
+/////////////////////////////////////////////////////////////////////////////////////
+
+
 if(isset($_GET["ordenescustomer"])){
     $sqlEmpleaados = mysqli_query($conexionBD,"SELECT * FROM orders WHERE orders.status != 4 AND orders.customer_id = ".$_GET["ordenescustomer"]);
     if(mysqli_num_rows($sqlEmpleaados) > 0){
@@ -290,6 +344,9 @@ if(isset($_GET["ordenescustomer"])){
    else{  echo json_encode(["success"=>0]); }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//recibe por get el id de la orden y devuelve todos los detalles de la orden //
+///////////////////////////////////////////////////////////////////////////////
 
 if(isset($_GET["detalleorden"])){
     $sqlEmpleaados = mysqli_query($conexionBD,"SELECT order_items.product_id, order_items.descuento, order_items.quantity, order_items.precio, order_items.talla, products.name FROM order_items, products WHERE order_items.order_id = ".$_GET["detalleorden"]."
@@ -303,6 +360,9 @@ if(isset($_GET["detalleorden"])){
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//recibe por post los mismos datos de el correo electronico, genera un codigo alfanumerico de 8 caracteres y lo envia al usuario para validar los puntos que descontara//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -367,6 +427,10 @@ if(isset($_GET["Validacion"])){
  
  }
 
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//recibe por get el id de una orden y se envia el archivo que luego se enviara al servidor de ggpoints cuando hay una transaccion//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
  if(isset($_GET["ggpoints"])){
     $sqlorden = mysqli_query($conexionBD,"SELECT orders.id, customers.identificacion_cliente, customers.name, orders.created, orders.total_price, orders.puntos
     FROM orders,customers WHERE orders.id = ".$_GET['ggpoints']."
@@ -385,6 +449,9 @@ if(isset($_GET["Validacion"])){
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//recibe por get el id de un cliente y por post toda su informacion personal la cual sera modificada//
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 if (isset($_GET["editcustomer"])){
@@ -414,6 +481,9 @@ if (isset($_GET["editcustomer"])){
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//recibe por get el id de una orden y la pone como fallida tras una contestacion negativa del servidor ggpoints//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 if (isset($_GET["revertirorden"])){
@@ -428,5 +498,84 @@ if (isset($_GET["revertirorden"])){
         exit();
     }
     else{  echo json_encode(["success"=>0]); }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+//recibe por post 2 variables y las compara para devolver la informacion de un cliente//
+////////////////////////////////////////////////////////////////////////////////////////
+
+
+if (isset($_GET["respass"])){
+     
+    $data = json_decode(file_get_contents("php://input"));
+    $identificacion=$data->identificacion;
+    $telefono=$data->telefono;
+   
+    $sql = mysqli_query($conexionBD,"SELECT * FROM `customers` WHERE phone = $telefono AND identificacion_cliente = $identificacion ");
+     if(mysqli_num_rows($sql) == 1){
+        $res = mysqli_fetch_all($sql,MYSQLI_ASSOC);
+
+
+        echo json_encode($res);
+        exit();
+    } if (mysqli_num_rows($sql) > 1) {
+        echo json_encode(["success"=>1]); 
+    }
+    else{  echo json_encode(["success"=>0]); }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+//recibe por post datos de un pago realizado en un punto gana gana y lo registra en la bd//
+///////////////////////////////////////////////////////////////////////////////////////////
+
+
+if (isset($_GET["pagosgg"])){
+     
+    $data = json_decode(file_get_contents("php://input"));
+    $order=$data->order;
+    $valor=$data->valor;
+    $lugar=$data->lugar;
+    $DateAndTime = date('Y-m-d h:i:s a', time()); 
+   
+    $sql = mysqli_query($conexionBD,"UPDATE  orders 
+    SET status = '2', modified = '$DateAndTime'
+    WHERE orders.id =".$order."");
+     if($sql){
+       $sql2 = mysqli_query($conexionBD,"INSERT INTO pagos_gg
+       (order_id, valor, fecha, lugar_pago) VALUES 
+       ('".$order."','".$valor."','".$DateAndTime."','".$lugar."')");
+        echo json_encode(["success"=>1]);
+        exit();
+    } 
+    else{  echo json_encode(["success"=>0]); }
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//recibe por get el id de una orden y devuelve la informacion necesaria para realizar el pago en un punto gana gana//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+if (isset($_GET["consulta_pagosgg"])){
+     
+    
+    $sql = mysqli_query($conexionBD,"SELECT * FROM `orders`, customers WHERE orders.id = $_GET[consulta_pagosgg]
+    AND customers.id = orders.customer_id
+    AND orders.status = 1 ");
+     if(mysqli_num_rows($sql) == 1){
+        $res = mysqli_fetch_all($sql,MYSQLI_ASSOC);
+        echo json_encode(
+            [
+             "Numero_Orden"=> $_GET['consulta_pagosgg'],
+             "Valor_Pago"=> $res[0]['total_price'] - $res[0]['puntos'],
+             "Identificacion_Cliente"=>$res[0]['identificacion_cliente'],
+             "Nombre_Cliente"=>$res[0]['name'],
+             "Telefono_Cliente"=>$res[0]['phone'],
+             "Email_Cliente"=>$res[0]['email']]
+            );
+        exit();
+    } else{  echo json_encode(["success"=>0]); }
 }
 
