@@ -501,9 +501,9 @@ if (isset($_GET["revertirorden"])){
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////////
-//recibe por post 2 variables y las compara para devolver la informacion de un cliente//
-////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//recibe por post 2 variables y las compara para devolver la informacion de un cliente  para recuperar la contraseña//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 if (isset($_GET["respass"])){
@@ -526,32 +526,72 @@ if (isset($_GET["respass"])){
 }
 
 
-///////////////////////////////////////////////////////////////////////////////////////////
-//recibe por post datos de un pago realizado en un punto gana gana y lo registra en la bd//
-///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////WEB SERVICE PARA GANA GANA///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-if (isset($_GET["pagosgg"])){
-     
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+//recibe por post datos de un pago realizado en un punto gana gana y lo registra en la bd//                         
+///////////////////////////////////////////////////////////////////////////////////////////                         
+                                                                                                                    
+                                                                                                                    
+if (isset($_GET["pagosgg"])){                                                                                       
+
     $data = json_decode(file_get_contents("php://input"));
     $order=$data->order;
     $valor=$data->valor;
     $lugar=$data->lugar;
+    $usr=$data->usr;
+    $token=$data->token;
+    $transaccion=$data->transaccion;
+    $token= hash('sha512',$token );
     $DateAndTime = date('Y-m-d h:i:s a', time()); 
-   
-    $sql = mysqli_query($conexionBD,"UPDATE  orders 
-    SET status = '2', modified = '$DateAndTime'
-    WHERE orders.id =".$order."");
-     if($sql){
-       $sql2 = mysqli_query($conexionBD,"INSERT INTO pagos_gg
-       (order_id, valor, fecha, lugar_pago) VALUES 
-       ('".$order."','".$valor."','".$DateAndTime."','".$lugar."')");
-        echo json_encode(["success"=>1]);
-        exit();
-    } 
-    else{  echo json_encode(["success"=>0]); }
-}
 
+     
+    if ( !$token || !$order || !$usr || !$transaccion || !$lugar ) {
+        echo json_encode(["Success"=> 0,
+                            "Status"=>"campos en blanco"]);
+    }else {
+
+
+    $sqlt = mysqli_query($conexionBD,"SELECT * FROM `usr_ws` WHERE usr_nickname = '".$usr."' AND token = '".$token."' ");
+    if(mysqli_num_rows($sqlt) > 0){
+      
+
+   
+        $sql = mysqli_query($conexionBD,"UPDATE  orders
+        SET status = '2', modified = '$DateAndTime'
+        WHERE orders.id =".$order."");
+         if($sql){
+           $sql2 = mysqli_query($conexionBD,"INSERT INTO pagos_g
+           (order_id, valor, fecha, lugar_pago,usr_ws,transaccion_id) VALUES 
+           ('".$order."','".$valor."','".$DateAndTime."','".$lugar."','".$usr."','".$transaccion."')");
+    
+           if ($sql2) {
+            echo json_encode(["Success"=>1,
+                            "Status"=>"Registro exitoso"]);
+           }else {
+            echo json_encode(["Success"=>0,
+                                "Status"=>"Se modifico la orden pero no se registro el pago"]);
+           }
+           
+           
+        } 
+        else{  echo json_encode(["Success"=>0,
+                                "Status"=>"No se registro ninguna informacion"]); }
+
+
+
+   }else{
+   echo json_encode(["Success"=>0,
+                    "Status"=>"error en usr y/o token"]);
+   }
+
+}
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //recibe por get el id de una orden y devuelve la informacion necesaria para realizar el pago en un punto gana gana//
@@ -559,6 +599,18 @@ if (isset($_GET["pagosgg"])){
 
 
 if (isset($_GET["consulta_pagosgg"])){
+    $data = json_decode(file_get_contents("php://input"));
+    $usr=$data->usr;
+    $token=$data->token;
+    $token= hash('sha512',$token );
+
+    if ( !$token ||  !$usr   ) {
+        echo json_encode(["Success"=> 0,
+                            "Status"=>"campos en blanco"]);
+    }else {
+    
+    $sqlt = mysqli_query($conexionBD,"SELECT * FROM `usr_ws` WHERE usr_nickname = '".$usr."' AND token = '".$token."' ");
+    if(mysqli_num_rows($sqlt) > 0){
      
     
     $sql = mysqli_query($conexionBD,"SELECT * FROM `orders`, customers WHERE orders.id = $_GET[consulta_pagosgg]
@@ -568,6 +620,7 @@ if (isset($_GET["consulta_pagosgg"])){
         $res = mysqli_fetch_all($sql,MYSQLI_ASSOC);
         echo json_encode(
             [
+             "Success"=>1,
              "Numero_Orden"=> $_GET['consulta_pagosgg'],
              "Valor_Pago"=> $res[0]['total_price'] - $res[0]['puntos'],
              "Identificacion_Cliente"=>$res[0]['identificacion_cliente'],
@@ -576,6 +629,77 @@ if (isset($_GET["consulta_pagosgg"])){
              "Email_Cliente"=>$res[0]['email']]
             );
         exit();
-    } else{  echo json_encode(["success"=>0]); }
+    } else{  echo json_encode(["Success"=>0,
+                                "Status"=>"Orden no disponible para pago"]); }
+
+}else{
+    echo json_encode(["Success"=>0,
+                        "Status"=>"error en usr y/o token"]);
+    }
 }
 
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Revierte toda la operacion de pagos dejando la orden abierta para un nuevo pago y anulando el registro de pagosgg//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+                                                                                                                   
+if (isset($_GET["revertir"])){                                                                                       
+
+    $data = json_decode(file_get_contents("php://input"));
+    $order=$data->order;
+    $usr=$data->usr;
+    $token=$data->token;
+    $transaccion= $data->transaccion;
+    $token= hash('sha512',$token );
+    $DateAndTime = date('Y-m-d h:i:s a', time()); 
+
+    if ( !$token || !$order || !$usr || !$transaccion ) {
+        echo json_encode(["Success"=> 0,
+                            "Status"=>"campos en blanco"]);
+    }else {
+        
+         
+    $sqlt = mysqli_query($conexionBD,"SELECT * FROM `usr_ws` WHERE usr_nickname = '".$usr."' AND token = '".$token."' ");
+    if(mysqli_num_rows($sqlt) > 0){
+      
+
+   
+        $sql = mysqli_query($conexionBD,"UPDATE  orders 
+        SET status = '1', modified = '$DateAndTime'
+        WHERE orders.id =".$order."");
+         if($sql){
+           $sql2 = mysqli_query($conexionBD,"UPDATE pagos_gg
+           SET status = '2', fecha_reverso = '".$DateAndTime."', usr_reverso = '".$usr."', transaccion_reverso_id= '".$transaccion."'
+           WHERE pagos_gg.order_id = $order");
+    
+           if ($sql2) {
+            echo json_encode(["Success"=>1,
+                            "Status"=>"Reverso exitoso"]);
+           }else {
+            echo json_encode(["Success"=>0,
+                                "Status"=>"Se modifico la orden pero no se reverso el pago"]);
+           }
+           
+           
+        } 
+        else{  echo json_encode(["Success"=>0,
+                                "Status"=>"No se reverso ninguna informacion"]); }
+
+
+
+   }else{
+   echo json_encode(["Success"=>0,
+                    "Status"=>"error en usr y/o token"]);
+   }
+
+}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////// FIN DEL WEB SERVICE PARA GANA GANA//////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
