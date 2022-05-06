@@ -41,6 +41,9 @@ if (isset($_GET["consultarcategorias"])){
 
 
 
+
+
+
 //////////////////////////////////////////////////////////////////////////////
 //Consulta todos los productos que cuentan con algun descuento////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -57,6 +60,23 @@ if (isset($_GET["productosdescuento"])){
     else{  echo json_encode(["success"=>0]); }
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Consulta todos los productos de alguna subcategoria/////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+if (isset($_GET["prodsubcate"])){
+    $sqlEmpleaados = mysqli_query($conexionBD,"SELECT * FROM products
+    WHERE id_subcategoria_products	= '".$_GET['prodsubcate']."'
+    AND status = '1'
+    ORDER BY RAND() LIMIT 30");
+    if(mysqli_num_rows($sqlEmpleaados) > 0){
+        $empleaados = mysqli_fetch_all($sqlEmpleaados,MYSQLI_ASSOC);
+        echo json_encode($empleaados,JSON_INVALID_UTF8_SUBSTITUTE);
+        exit();
+    }
+    else{  echo json_encode(["success"=>0]); }
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -291,7 +311,7 @@ $mail = new PHPMailer(true);
 
 try {
     //Server settings
-    $mail->SMTPDebug = 0 ;                      //Enable verbose debug 
+ /*   $mail->SMTPDebug = 0 ;                      //Enable verbose debug 
     $mail->isSMTP();                                //Send using SMTP
     $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
     $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
@@ -299,9 +319,18 @@ try {
     $mail->Password   = 'nnxrcihvrpqwcrhl';                               //SMTP password
    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption 
     $mail->Port       = 465;                                    //465TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
+*/
+
+$mail->isSMTP();                                //Send using SMTP
+$mail->Host       = 'smtp.office365.com';                     //Set the SMTP server to send through
+$mail->SMTPAuth   = true;                                   //Enable SMTP authentication
+$mail->Username   = 'direcciontics@invercomes.com.co';                     //SMTP username
+$mail->Password   = '11Caldas25c';                               //SMTP password
+$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;//PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption 
+$mail->Port       = 587;    
 
     //Recipients
-    $mail->setFrom('comercial@invercomes.com.co', 'Marketpkace Invercomes');
+    $mail->setFrom('direcciontics@invercomes.com.co', 'Marketpkace Invercomes');
     $mail->addAddress($email, 'Cliente Feliz');     //Add a recipient
            //Name is optional
     //$mail->addReplyTo( 'contabilidad@invercomes.com.co', 'Contabilidad Invercomes');
@@ -393,7 +422,7 @@ if(isset($_GET["Validacion"])){
      // Output: iNCHNGzByPjhApvn7XBD
      $codigovale= generate_string($permitted_chars, 8);
       
-
+/*
 
  $mail = new PHPMailer(true);
 
@@ -409,6 +438,9 @@ if(isset($_GET["Validacion"])){
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption 
      $mail->Port       = 465;                                    //465TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
  
+
+
+
      //Recipients nnxrcihvrpqwcrhl
      $mail->setFrom('comercial@invercomes.com.co', 'Marketpkace Invercomes');
      $mail->addAddress($email, 'Cliente Feliz');     //Add a recipient
@@ -424,7 +456,56 @@ if(isset($_GET["Validacion"])){
  } catch (Exception $e) {
      echo json_encode([" Error:"=>$mail->ErrorInfo]);
  }
+ */  //correo con autenticacion
+
+
+ $to = $email;
+ $from = 'pedidos@invercomes.com.co';
+ $fromName = 'Invercomes Marketplace';
+  $subject = $asunto; 
  
+ //Ruta del archivo adjunto
+ $file = "img/Logo-Invercomes-Horizontal.png";
+ 
+ //Contenido del Email
+ $htmlContent = "el codigo es: ".$codigovale." gracias"; 
+ //Encabezado para información del remitente
+ $headers = "De: $fromName"." <".$from.">"; 
+ //Limite Email
+ $semi_rand = md5(time()); 
+ $mime_boundary = "==Multipart_Boundary_x{$semi_rand}x";  
+ //Encabezados para archivo adjunto 
+ $headers .= "\nMIME-Version: 1.0\n" . "Content-Type: multipart/mixed;\n" . " boundary=\"{$mime_boundary}\"";  
+ //límite multiparte
+ $message = "--{$mime_boundary}\n" . "Content-Type: text/html; charset=\"UTF-8\"\n" .
+ "Content-Transfer-Encoding: 7bit\n\n" . $htmlContent . "\n\n";  
+ //preparación de archivo
+ if(!empty($file) > 0){
+     if(is_file($file)){
+         $message .= "--{$mime_boundary}\n";
+         $fp =    @fopen($file,"rb");
+         $data =  @fread($fp,filesize($file));
+          @fclose($fp);
+         $data = chunk_split(base64_encode($data));
+         $message .= "Content-Type: application/octet-stream; name=\"".basename($file)."\"\n" . 
+         "Content-Description: ".basename($files[$i])."\n" .
+         "Content-Disposition: attachment;\n" . " filename=\"".basename($file)."\"; size=".filesize($file).";\n" . 
+         "Content-Transfer-Encoding: base64\n\n" . $data . "\n\n";
+     }
+ }
+ $message .= "--{$mime_boundary}--";
+ $returnpath = "-f" . $from;
+ 
+ //Enviar EMail
+ $mail = @mail($to, $subject, $message, $headers, $returnpath); 
+
+if ($mail) {
+    echo json_encode(["Codigo"=> $codigovale]);
+}else {
+    echo json_encode([" Error:"=>$mail->ErrorInfo]);
+}
+
+
  }
 
  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
